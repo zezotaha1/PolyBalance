@@ -27,14 +27,7 @@ namespace PolyBalance.Services.parties
         {
             var party =  await _repositoryParty.GetByIdAsync(id);;
 
-            return new PartyDTO { 
-                Id = party.PartyId, 
-                Name =party.PartyName,
-                TypeId = party.PartyTypeId,
-                Amount =party.PartyTotalAmount, 
-                PhoneNumber = party.PartyPhoneNumber, 
-                Address=party.PartyAddress ?? "" 
-            };
+            return ToDTO(party);
         }
 
         public async Task<ICollection<PartyDTO>> GetAllPartiesAsync()
@@ -43,47 +36,41 @@ namespace PolyBalance.Services.parties
             var Parties =new List<PartyDTO>();
             foreach(var party in PartiesFromDatabase)
             {
-                Parties.Add(new PartyDTO 
-                { 
-                    Id = party.PartyId, 
-                    Name = party.PartyName,
-                    TypeId = party.PartyTypeId, 
-                    Amount = party.PartyTotalAmount,
-                    PhoneNumber = party.PartyPhoneNumber, 
-                    Address = party.PartyAddress 
-                });
+                Parties.Add(ToDTO(party));
             }
             return Parties;
         }
 
         public async Task CreatePartyAsync(PartyDTO partyDTO)
         {
-            await _validation.Valid(partyDTO);
-            await ValidPartyTypeAsync(partyDTO.TypeId);
+            partyDTO.Id = 0;
+            await _validation.ValidPartyAsync(partyDTO);
 
-            var PartyToDatabade = new Party
-            {
-                PartyId = 0,
-                PartyName = partyDTO.Name,
-                PartyTypeId = partyDTO.TypeId,
-                PartyPhoneNumber = partyDTO.PhoneNumber,
-                PartyAddress = partyDTO.Address,
-                PartyTotalAmount = 0,
-                IsActive = true
-            };
-            await _repositoryParty.AddAsync(PartyToDatabade);
+            await _repositoryParty.AddAsync(ToEntity(partyDTO));
         }
 
         public async Task UpdatePartyAsync(PartyDTO partyDTO) 
         {
             var party = await _repositoryParty.GetByIdAsync(partyDTO.Id);
-            await ValidPartyTypeAsync(partyDTO.TypeId);
-            await _validation.Valid(partyDTO);
 
-            party.PartyName = partyDTO.Name;
-            party.PartyTypeId = partyDTO.TypeId;
-            party.PartyPhoneNumber = partyDTO.PhoneNumber;
+            if(partyDTO.Name!= party.PartyName)
+            {
+                await _validation.NameValidationAsync(party.PartyName);
+                party.PartyName = partyDTO.Name;
+            }
+            if(partyDTO.PhoneNumber!= party.PartyPhoneNumber)
+            {
+                await _validation.PhoneNumberValidationAsync(partyDTO.PhoneNumber);
+                party.PartyPhoneNumber = partyDTO.PhoneNumber;
+            }
+            if (party.PartyTypeId != partyDTO.TypeId) 
+            {
+                await _validation.IsIdValidType<PartyType>(partyDTO.TypeId);
+                party.PartyTypeId = partyDTO.TypeId;
+            }
+
             party.PartyAddress = partyDTO.Address;
+            party.PartyRateing = partyDTO.Rateing;
 
             await _repositoryParty.UpdateAsync(party);
         }
@@ -101,16 +88,34 @@ namespace PolyBalance.Services.parties
             }
         }
 
-        public async Task ValidPartyTypeAsync(int TypeId)
+        public static PartyDTO ToDTO(Party party)
         {
-            try
+            return new PartyDTO
             {
-                await _repositoryPartyType.GetByIdAsync(TypeId);
-            }
-            catch
-            {
-                throw new Exception("Invalid Type");
-            }
+                Id = party.PartyId,
+                Name = party.PartyName,
+                TypeId = party.PartyTypeId,
+                Amount = party.PartyTotalAmount,
+                PhoneNumber = party.PartyPhoneNumber,
+                Address = party.PartyAddress ?? "",
+                Rateing = party.PartyRateing
+            };
         }
+
+        public static Party ToEntity(PartyDTO dto)
+        {
+            return new Party
+            {
+                PartyId = dto.Id,
+                PartyName = dto.Name,
+                PartyTypeId = dto.TypeId,
+                PartyPhoneNumber = dto.PhoneNumber,
+                PartyAddress = dto.Address,
+                PartyRateing = dto.Rateing,
+                PartyTotalAmount = dto.Amount,
+                IsActive = true
+            };
+        }
+
     }
 }

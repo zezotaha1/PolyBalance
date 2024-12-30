@@ -6,8 +6,6 @@ using PolyBalance.Services;
 using PolyBalance.Repository;
 using PolyBalance.Services.PartyTypes;
 
-
-
 internal class Program
 {
     private static void Main(string[] args)
@@ -16,19 +14,32 @@ internal class Program
 
         // Add services to the container.
 
-        builder.Services.AddDbContext<PolyBalanceDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection")));
-
+        // Configure DbContext
+        builder.Services.AddDbContext<PolyBalanceDbContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection")));
 
         builder.Services.AddControllers();
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+        // Swagger setup
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
+        // Dependency Injection
         builder.Services.AddScoped<Validation>();
         builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         builder.Services.AddScoped<IPartiesServices, PartiesServices>();
         builder.Services.AddScoped<IPartyTypesServices, PartyTypesServices>();
 
+        // Add CORS configuration
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAnyOrigin", policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyHeader()
+                      .AllowAnyMethod();
+            });
+        });
 
         var app = builder.Build();
 
@@ -42,7 +53,7 @@ internal class Program
         app.UseHttpsRedirection();
         app.UseRouting();
 
-        // Enable CORS
+        // Enable CORS globally
         app.UseCors("AllowAnyOrigin");
 
         app.UseAuthorization();

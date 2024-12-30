@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PolyBalance.Models;
 
@@ -11,9 +12,11 @@ using PolyBalance.Models;
 namespace PolyBalance.Migrations
 {
     [DbContext(typeof(PolyBalanceDbContext))]
-    partial class PolyBalanceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241226203512_AddRateingToParty")]
+    partial class AddRateingToParty
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -374,9 +377,6 @@ namespace PolyBalance.Migrations
 
                     b.HasKey("PartyTypeId");
 
-                    b.HasIndex("PartyTypeName")
-                        .IsUnique();
-
                     b.ToTable("PartyTypes");
                 });
 
@@ -486,20 +486,18 @@ namespace PolyBalance.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreId"));
 
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Capacity")
+                        .HasColumnType("float");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<string>("StoreAddress")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<double>("StoreCapacity")
-                        .HasColumnType("float");
-
-                    b.Property<string>("StoreName")
+                    b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("StoreId");
 

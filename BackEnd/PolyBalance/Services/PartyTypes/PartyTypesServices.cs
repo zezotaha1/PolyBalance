@@ -19,11 +19,7 @@ namespace PolyBalance.Services.PartyTypes
         public async Task<PartyTypeDTO> GetPartyTypeByIdAsync(int id)
         {
             var partyType = await _repository.GetByIdAsync(id);
-            return new PartyTypeDTO
-            {
-                Id = partyType.PartyTypeId,
-                Name = partyType.PartyTypeName
-            };
+            return ToDTO(partyType);
         }
 
         // Get All PartyTypes
@@ -33,11 +29,7 @@ namespace PolyBalance.Services.PartyTypes
             var partytypes = new List<PartyTypeDTO>();
             foreach (var pt in partytypesFromDatabase)
             {
-                partytypes.Add(new PartyTypeDTO
-                {
-                    Id = pt.PartyTypeId,
-                    Name = pt.PartyTypeName
-                });
+                partytypes.Add(ToDTO(pt));
             }
             return partytypes;
         }
@@ -45,16 +37,14 @@ namespace PolyBalance.Services.PartyTypes
         // Create PartyType
         public async Task CreatePartyTypeAsync(PartyTypeDTO partyTypeDTO)
         {
-            if (_validation.NameValidation(partyTypeDTO.Name))
+            if (await _validation.NameValidationAsync(partyTypeDTO.Name))
             {
-
-                var partyType = new PartyType
-                {
-                    PartyTypeId = 0,
-                    PartyTypeName = partyTypeDTO.Name,
-                    IsActive = true
-                };
-                await _repository.AddAsync(partyType);
+                if(await _repository.FindAsync(e=>e.PartyTypeName==partyTypeDTO.Name)!=null)
+                { 
+                    throw new InvalidOperationException("This name has already been used.");
+                }
+                partyTypeDTO.Id = 0;
+                await _repository.AddAsync(ToEntity(partyTypeDTO));
             }
 
         }
@@ -63,8 +53,13 @@ namespace PolyBalance.Services.PartyTypes
         public async Task UpdatePartyTypeAsync( PartyTypeDTO partyTypeDTO)
         {
             var partyType = await _repository.GetByIdAsync(partyTypeDTO.Id);
-            _validation.NameValidation(partyTypeDTO.Name);
-            
+            await _validation.NameValidationAsync(partyTypeDTO.Name);
+
+            if (await _repository.FindAsync(e => e.PartyTypeName == partyTypeDTO.Name) != null)
+            {
+                throw new InvalidOperationException("This name has already been used.");
+            }
+
             partyType.PartyTypeName = partyTypeDTO.Name;
             await _repository.UpdateAsync(partyType);
             
@@ -80,6 +75,25 @@ namespace PolyBalance.Services.PartyTypes
         public async Task RestorePartyTypeAsync(int id)
         {
             await _repository.RestoreAsync(entity => entity.PartyTypeId == id);
+        }
+
+        public static PartyTypeDTO ToDTO(PartyType partyType)
+        {
+            return new PartyTypeDTO
+            {
+                Id = partyType.PartyTypeId,
+                Name = partyType.PartyTypeName
+            };
+        }
+
+        public static PartyType ToEntity(PartyTypeDTO dto)
+        {
+            return new PartyType
+            {
+                PartyTypeId = dto.Id,
+                PartyTypeName = dto.Name,
+                IsActive = true
+            };
         }
     }
 }

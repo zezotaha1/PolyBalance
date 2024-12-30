@@ -94,6 +94,8 @@ namespace PolyBalance.Models
                 entity.HasIndex(p => p.PartyPhoneNumber).IsUnique();
             });
 
+            modelBuilder.Entity<PartyType>().HasIndex(pt => pt.PartyTypeName).IsUnique();
+
             modelBuilder.Entity<PaymentDetail>(entity =>
             {
                 entity.HasOne(d => d.Transaction)

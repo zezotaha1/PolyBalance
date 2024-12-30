@@ -1,4 +1,5 @@
-﻿using PolyBalance.Repository;
+﻿using Microsoft.EntityFrameworkCore;
+using PolyBalance.Repository;
 using System.ComponentModel.DataAnnotations;
 
 namespace PolyBalance.Models

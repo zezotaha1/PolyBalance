@@ -14,7 +14,6 @@ public partial class Transaction : IActivatable
     [MaxLength(50)]
     public string? OprationType { get; set; }
 
-
     public DateOnly TransactionDate { get; set; }
 
     public double Amount { get; set; }

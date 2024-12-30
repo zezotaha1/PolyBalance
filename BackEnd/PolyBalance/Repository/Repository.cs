@@ -49,7 +49,7 @@ namespace PolyBalance.Repository
         }
         public async Task DeleteByIdAsync(int id)
         {
-            var entity = await _dbSet.FindAsync(id) ?? throw new SqlNullValueException("This entity Not Found");
+            var entity = await GetByIdAsync(id) ?? throw new SqlNullValueException("This entity Not Found");
             entity.IsActive = false;
             await _dbContext.SaveChangesAsync();
         }

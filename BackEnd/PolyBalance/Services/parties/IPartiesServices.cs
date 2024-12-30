@@ -10,7 +10,6 @@ namespace PolyBalance.Services.parties
         public Task UpdatePartyAsync(PartyDTO partyDTO);
         public Task DeletePartyAsync(int id);
         public  Task RestorePartyAsync(string PhoneNumber);
-        public Task ValidPartyTypeAsync(int TypeId);
     }
 }
  

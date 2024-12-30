@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PolyBalance.Models;
 
@@ -11,9 +12,11 @@ using PolyBalance.Models;
 namespace PolyBalance.Migrations
 {
     [DbContext(typeof(PolyBalanceDbContext))]
-    partial class PolyBalanceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241230200311_addUniqueConstrainToPartyTypeName")]
+    partial class addUniqueConstrainToPartyTypeName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

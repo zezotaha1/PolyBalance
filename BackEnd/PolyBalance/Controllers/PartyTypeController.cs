@@ -8,7 +8,7 @@ using PolyBalance.DTO;
 
 namespace PolyBalance.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class PartyTypeController : ControllerBase
     {
@@ -64,7 +64,7 @@ namespace PolyBalance.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return BadRequest(ex.Message);
             }
         }
 
