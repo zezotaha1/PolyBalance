@@ -13,15 +13,15 @@ public partial class ProductionOrder : IActivatable
 
     public double ProductionQuantity { get; set; }
 
-    public DateOnly StartDate { get; set; }
+    public DateTime StartDate { get; set; }
 
-    public DateOnly? EndDate { get; set; }
+    public DateTime? EndDate { get; set; }
 
     public double UintCost { get; set; }//sum all materials cost and coverheads 
     [MaxLength(50)]
     public string? Status { get; set; }
     public bool IsActive { get; set; }
-    public virtual InventoryItem? Item { get; set; }
+    public virtual Item? Item { get; set; }
 
     public virtual ICollection<Overhead> Overheads { get; set; } = new List<Overhead>();
 

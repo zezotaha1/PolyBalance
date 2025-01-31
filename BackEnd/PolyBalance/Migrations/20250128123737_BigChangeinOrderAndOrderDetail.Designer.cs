@@ -12,8 +12,8 @@ using PolyBalance.Models;
 namespace PolyBalance.Migrations
 {
     [DbContext(typeof(PolyBalanceDbContext))]
-    [Migration("20241226203512_AddRateingToParty")]
-    partial class AddRateingToParty
+    [Migration("20250128123737_BigChangeinOrderAndOrderDetail")]
+    partial class BigChangeinOrderAndOrderDetail
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,33 +33,37 @@ namespace PolyBalance.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AccountDetailId"));
 
-                    b.Property<double>("Amount")
-                        .HasColumnType("float");
+                    b.Property<decimal>("AccountDetailAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("AccountDetailCreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AccountDetailNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("AccountDetailType")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Note")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("OprationId")
+                    b.Property<int?>("OrderId")
                         .HasColumnType("int");
 
-                    b.Property<string>("OprationType")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int?>("PartyId")
+                    b.Property<int>("PartyId")
                         .HasColumnType("int");
-
-                    b.Property<bool?>("Type")
-                        .HasColumnType("bit");
 
                     b.HasKey("AccountDetailId");
 
                     b.HasIndex("PartyId");
 
-                    b.ToTable("AccountDetails");
+                    b.ToTable("AccountDetails", t =>
+                        {
+                            t.HasTrigger("UpdateAccountDetailsAmount");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("PolyBalance.Models.Expense", b =>
@@ -73,8 +77,8 @@ namespace PolyBalance.Migrations
                     b.Property<double>("Amount")
                         .HasColumnType("float");
 
-                    b.Property<DateOnly>("ExpenseDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("ExpenseDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("ExpenseType")
                         .HasMaxLength(50)
@@ -99,8 +103,8 @@ namespace PolyBalance.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InventoryAdjustmentId"));
 
-                    b.Property<DateOnly>("AdjustmentDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("AdjustmentDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("AdjustmentType")
                         .HasColumnType("bit");
@@ -108,7 +112,7 @@ namespace PolyBalance.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("ItemsPricesAndStoreId")
+                    b.Property<int?>("ItemsPricesId")
                         .HasColumnType("int");
 
                     b.Property<double>("QuantityChange")
@@ -119,84 +123,89 @@ namespace PolyBalance.Migrations
 
                     b.HasKey("InventoryAdjustmentId");
 
-                    b.HasIndex("ItemsPricesAndStoreId");
+                    b.HasIndex("ItemsPricesId");
 
                     b.ToTable("InventoryAdjustments");
                 });
 
-            modelBuilder.Entity("PolyBalance.Models.InventoryItem", b =>
+            modelBuilder.Entity("PolyBalance.Models.Item", b =>
                 {
-                    b.Property<int>("InventoryItemId")
+                    b.Property<int>("ItemId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InventoryItemId"));
-
-                    b.Property<double?>("CurrentStock")
-                        .HasColumnType("float");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ItemId"));
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Name")
+                    b.Property<DateTime>("ItemCreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("ItemCurrentStock")
+                        .HasColumnType("float");
+
+                    b.Property<string>("ItemDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ItemName")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<double?>("ReorderLevel")
+                    b.Property<double>("ItemReorderLevel")
                         .HasColumnType("float");
 
-                    b.Property<bool>("Type")
+                    b.Property<bool>("ItemType")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Unit")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<string>("ItemUnit")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
-                    b.HasKey("InventoryItemId");
+                    b.HasKey("ItemId");
 
-                    b.ToTable("InventoryItems");
+                    b.HasIndex("ItemName")
+                        .IsUnique();
+
+                    b.ToTable("Items");
                 });
 
-            modelBuilder.Entity("PolyBalance.Models.ItemsPricesAndStore", b =>
+            modelBuilder.Entity("PolyBalance.Models.ItemPrice", b =>
                 {
-                    b.Property<int>("ItemsPricesAndStoreId")
+                    b.Property<int>("ItemPriceId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ItemsPricesAndStoreId"));
-
-                    b.Property<double>("CurrentStock")
-                        .HasColumnType("float");
-
-                    b.Property<int?>("InventoryItemId")
-                        .HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ItemPriceId"));
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<DateOnly>("StorageDate")
-                        .HasColumnType("date");
-
-                    b.Property<int?>("StoreId")
+                    b.Property<int>("ItemId")
                         .HasColumnType("int");
 
-                    b.Property<double>("UnitCost")
-                        .HasColumnType("float");
+                    b.Property<DateTime>("ItemPriceCreatedAt")
+                        .HasColumnType("datetime2");
 
-                    b.Property<double?>("UnitSellingPrice")
-                        .HasColumnType("float");
+                    b.Property<decimal>("ItemPriceCurrentStock")
+                        .HasColumnType("decimal(18,2)");
 
-                    b.HasKey("ItemsPricesAndStoreId");
+                    b.Property<decimal>("ItemPriceUnitCost")
+                        .HasColumnType("decimal(18,2)");
 
-                    b.HasIndex("InventoryItemId");
+                    b.HasKey("ItemPriceId");
 
-                    b.HasIndex("StoreId");
+                    b.HasIndex("ItemId", "ItemPriceUnitCost")
+                        .IsUnique();
 
-                    b.ToTable("ItemsPricesAndStores");
+                    b.ToTable("ItemsPrices", t =>
+                        {
+                            t.HasTrigger("UpdateItemCurrentStock");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("PolyBalance.Models.Order", b =>
@@ -207,32 +216,20 @@ namespace PolyBalance.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
 
-                    b.Property<float>("Discount")
-                        .HasColumnType("real");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<double>("LineTotal")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("float")
-                        .HasComputedColumnSql("[TotalAmount]-([TotalAmount]*[Discount])", true);
+                    b.Property<DateTime>("OrderDate")
+                        .HasColumnType("datetime2");
 
-                    b.Property<DateOnly>("OrderDate")
-                        .HasColumnType("date");
+                    b.Property<decimal>("OrderPaid")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<bool>("OrderType")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("PartyId")
+                    b.Property<int>("PartyId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<double>("TotalAmount")
-                        .HasColumnType("float");
 
                     b.HasKey("OrderId");
 
@@ -249,39 +246,28 @@ namespace PolyBalance.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderDetailId"));
 
-                    b.Property<float>("Discount")
-                        .HasColumnType("real");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("ItemsPricesAndStoreId")
+                    b.Property<decimal>("OrderDetailDiscount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("OrderDetailQuantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("OrderDetailUnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("OrderId")
                         .HasColumnType("int");
 
-                    b.Property<double>("LineTotal")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("float")
-                        .HasComputedColumnSql("([Quantity]*[UnitPrice])-(([Quantity]*[UnitPrice])*[Discount])", true);
-
-                    b.Property<int?>("OrderId")
+                    b.Property<int>("UintId")
                         .HasColumnType("int");
-
-                    b.Property<double>("Quantity")
-                        .HasColumnType("float");
-
-                    b.Property<double>("TotalPrice")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("float")
-                        .HasComputedColumnSql("([Quantity]*[UnitPrice])", true);
-
-                    b.Property<double>("UnitPrice")
-                        .HasColumnType("float");
 
                     b.HasKey("OrderDetailId");
 
-                    b.HasIndex("ItemsPricesAndStoreId");
-
-                    b.HasIndex("OrderId");
+                    b.HasIndex("OrderId", "UintId")
+                        .IsUnique();
 
                     b.ToTable("OrderDetails");
                 });
@@ -330,6 +316,9 @@ namespace PolyBalance.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<DateTime>("PartyCreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("PartyName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -340,7 +329,7 @@ namespace PolyBalance.Migrations
                         .HasMaxLength(11)
                         .HasColumnType("nvarchar(11)");
 
-                    b.Property<int>("PartyRateing")
+                    b.Property<int>("PartyRating")
                         .HasColumnType("int");
 
                     b.Property<double>("PartyTotalAmount")
@@ -356,7 +345,12 @@ namespace PolyBalance.Migrations
 
                     b.HasIndex("PartyTypeId");
 
-                    b.ToTable("Parties");
+                    b.ToTable("Parties", t =>
+                        {
+                            t.HasTrigger("UpdatePartyAmount");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("PolyBalance.Models.PartyType", b =>
@@ -376,6 +370,9 @@ namespace PolyBalance.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("PartyTypeId");
+
+                    b.HasIndex("PartyTypeName")
+                        .IsUnique();
 
                     b.ToTable("PartyTypes");
                 });
@@ -449,8 +446,8 @@ namespace PolyBalance.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductionOrderId"));
 
-                    b.Property<DateOnly?>("EndDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<int?>("InventoryItemId")
                         .HasColumnType("int");
@@ -461,8 +458,8 @@ namespace PolyBalance.Migrations
                     b.Property<double>("ProductionQuantity")
                         .HasColumnType("float");
 
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Status")
                         .HasMaxLength(50)
@@ -486,20 +483,26 @@ namespace PolyBalance.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreId"));
 
-                    b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double?>("Capacity")
-                        .HasColumnType("float");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("StoreAddress")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<double>("StoreCapacity")
+                        .HasColumnType("float");
+
+                    b.Property<string>("StoreName")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.HasKey("StoreId");
+
+                    b.HasIndex("StoreName", "StoreAddress")
+                        .IsUnique();
 
                     b.ToTable("Stores");
                 });
@@ -528,8 +531,8 @@ namespace PolyBalance.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<DateOnly>("TransactionDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("TransactionType")
                         .HasColumnType("bit");
@@ -543,55 +546,51 @@ namespace PolyBalance.Migrations
                 {
                     b.HasOne("PolyBalance.Models.Party", "Party")
                         .WithMany("AccountDetails")
-                        .HasForeignKey("PartyId");
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Party");
                 });
 
             modelBuilder.Entity("PolyBalance.Models.InventoryAdjustment", b =>
                 {
-                    b.HasOne("PolyBalance.Models.ItemsPricesAndStore", "ItemPrice")
+                    b.HasOne("PolyBalance.Models.ItemPrice", "ItemPrice")
                         .WithMany("InventoryAdjustments")
-                        .HasForeignKey("ItemsPricesAndStoreId");
+                        .HasForeignKey("ItemsPricesId");
 
                     b.Navigation("ItemPrice");
                 });
 
-            modelBuilder.Entity("PolyBalance.Models.ItemsPricesAndStore", b =>
+            modelBuilder.Entity("PolyBalance.Models.ItemPrice", b =>
                 {
-                    b.HasOne("PolyBalance.Models.InventoryItem", "Item")
-                        .WithMany("ItemsPricesAndStores")
-                        .HasForeignKey("InventoryItemId");
-
-                    b.HasOne("PolyBalance.Models.Store", "Store")
-                        .WithMany("ItemsPricesAndStores")
-                        .HasForeignKey("StoreId");
+                    b.HasOne("PolyBalance.Models.Item", "Item")
+                        .WithMany("ItemsPrices")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Item");
-
-                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("PolyBalance.Models.Order", b =>
                 {
                     b.HasOne("PolyBalance.Models.Party", "Party")
                         .WithMany("Orders")
-                        .HasForeignKey("PartyId");
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Party");
                 });
 
             modelBuilder.Entity("PolyBalance.Models.OrderDetail", b =>
                 {
-                    b.HasOne("PolyBalance.Models.ItemsPricesAndStore", "ItemPrice")
-                        .WithMany("OrderDetails")
-                        .HasForeignKey("ItemsPricesAndStoreId");
-
                     b.HasOne("PolyBalance.Models.Order", "Order")
                         .WithMany("OrderDetails")
-                        .HasForeignKey("OrderId");
-
-                    b.Navigation("ItemPrice");
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Order");
                 });
@@ -627,7 +626,7 @@ namespace PolyBalance.Migrations
 
             modelBuilder.Entity("PolyBalance.Models.ProductionMaterial", b =>
                 {
-                    b.HasOne("PolyBalance.Models.ItemsPricesAndStore", "ItemPrice")
+                    b.HasOne("PolyBalance.Models.ItemPrice", "ItemPrice")
                         .WithMany("ProductionMaterials")
                         .HasForeignKey("ItemsPricesAndStoreId");
 
@@ -642,25 +641,23 @@ namespace PolyBalance.Migrations
 
             modelBuilder.Entity("PolyBalance.Models.ProductionOrder", b =>
                 {
-                    b.HasOne("PolyBalance.Models.InventoryItem", "Item")
+                    b.HasOne("PolyBalance.Models.Item", "Item")
                         .WithMany("ProductionOrders")
                         .HasForeignKey("InventoryItemId");
 
                     b.Navigation("Item");
                 });
 
-            modelBuilder.Entity("PolyBalance.Models.InventoryItem", b =>
+            modelBuilder.Entity("PolyBalance.Models.Item", b =>
                 {
-                    b.Navigation("ItemsPricesAndStores");
+                    b.Navigation("ItemsPrices");
 
                     b.Navigation("ProductionOrders");
                 });
 
-            modelBuilder.Entity("PolyBalance.Models.ItemsPricesAndStore", b =>
+            modelBuilder.Entity("PolyBalance.Models.ItemPrice", b =>
                 {
                     b.Navigation("InventoryAdjustments");
-
-                    b.Navigation("OrderDetails");
 
                     b.Navigation("ProductionMaterials");
                 });
@@ -687,11 +684,6 @@ namespace PolyBalance.Migrations
                     b.Navigation("Overheads");
 
                     b.Navigation("ProductionMaterials");
-                });
-
-            modelBuilder.Entity("PolyBalance.Models.Store", b =>
-                {
-                    b.Navigation("ItemsPricesAndStores");
                 });
 
             modelBuilder.Entity("PolyBalance.Models.Transaction", b =>

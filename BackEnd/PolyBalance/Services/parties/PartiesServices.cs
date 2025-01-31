@@ -12,27 +12,25 @@ namespace PolyBalance.Services.parties
     {
         
         private readonly Validation _validation;
-        private readonly IRepository<Party> _repositoryParty;
-        private readonly IRepository<PartyType> _repositoryPartyType;
+        private readonly IRepository<Party> _PartyRepository;
 
 
-        public PartiesServices(IRepository<Party> repository, Validation validation, IRepository<PartyType> repositoryPartyType)
+        public PartiesServices(IRepository<Party> repository, Validation validation)
         {
-            _repositoryParty = repository;
+            _PartyRepository = repository;
             _validation=validation;
-            _repositoryPartyType = repositoryPartyType;
         }
 
         public async Task<PartyDTO> GetPartyByIdAsync(int id)
         {
-            var party =  await _repositoryParty.GetByIdAsync(id);;
+            var party =  await _PartyRepository.GetByIdAsync(id);;
 
             return ToDTO(party);
         }
 
         public async Task<ICollection<PartyDTO>> GetAllPartiesAsync()
         {
-            var PartiesFromDatabase = await _repositoryParty.GetAllAsync();
+            var PartiesFromDatabase = await _PartyRepository.GetAllAsync();
             var Parties =new List<PartyDTO>();
             foreach(var party in PartiesFromDatabase)
             {
@@ -41,54 +39,62 @@ namespace PolyBalance.Services.parties
             return Parties;
         }
 
-        public async Task CreatePartyAsync(PartyDTO partyDTO)
+        public async Task<PartyDTO> CreatePartyAsync(PartyDTO partyDTO)
         {
             partyDTO.Id = 0;
-            await _validation.ValidPartyAsync(partyDTO);
-
-            await _repositoryParty.AddAsync(ToEntity(partyDTO));
+            _validation.ValidPartyAsync(partyDTO);
+            var isNumberUsed = await _PartyRepository.IsUsedAsync(e => e.PartyPhoneNumber == partyDTO.PhoneNumber);
+            if (isNumberUsed)
+            {
+                throw new InvalidOperationException("This phone number has already been used.");
+            }
+            await _PartyRepository.IsIdValidTypeAsync<PartyType>(partyDTO.TypeId);
+            return ToDTO(await _PartyRepository.AddAsync(ToEntity(partyDTO)));
         }
 
-        public async Task UpdatePartyAsync(PartyDTO partyDTO) 
+        public async Task<PartyDTO> UpdatePartyAsync(PartyDTO partyDTO) 
         {
-            var party = await _repositoryParty.GetByIdAsync(partyDTO.Id);
+            var party = await _PartyRepository.GetByIdAsync(partyDTO.Id);
 
             if(partyDTO.Name!= party.PartyName)
             {
-                await _validation.NameValidationAsync(party.PartyName);
+                _validation.NameValidationAsync(party.PartyName);
                 party.PartyName = partyDTO.Name;
             }
             if(partyDTO.PhoneNumber!= party.PartyPhoneNumber)
             {
-                await _validation.PhoneNumberValidationAsync(partyDTO.PhoneNumber);
+                _validation.PhoneNumberValidationAsync(partyDTO.PhoneNumber);
+                var isNumberUsed = await _PartyRepository.IsUsedAsync(e => e.PartyPhoneNumber == partyDTO.PhoneNumber);
+                if (isNumberUsed)
+                {
+                    throw new InvalidOperationException("This phone number has already been used.");
+                }
                 party.PartyPhoneNumber = partyDTO.PhoneNumber;
             }
             if (party.PartyTypeId != partyDTO.TypeId) 
             {
-                await _validation.IsIdValidType<PartyType>(partyDTO.TypeId);
+                await _PartyRepository.IsIdValidTypeAsync<PartyType>(partyDTO.TypeId);
                 party.PartyTypeId = partyDTO.TypeId;
             }
 
             party.PartyAddress = partyDTO.Address;
-            party.PartyRateing = partyDTO.Rateing;
+            party.PartyRating = partyDTO.Rating;
 
-            await _repositoryParty.UpdateAsync(party);
+            return ToDTO(await _PartyRepository.UpdateAsync(party));
         }
 
         public async Task DeletePartyAsync(int id)
         {
-            await _repositoryParty.DeleteByIdAsync(id);
+            await _PartyRepository.DeleteByIdAsync(id);
         }
 
-        public async Task RestorePartyAsync(string PhoneNumber)
+        public async Task<PartyDTO> RestorePartyAsync(string PhoneNumber)
         {
-            if (await _validation.PhoneNumberValidationAsync(PhoneNumber))
-            {
-                await _repositoryParty.RestoreAsync(entity=>entity.PartyPhoneNumber == PhoneNumber);
-            }
+             _validation.PhoneNumberValidationAsync(PhoneNumber);
+             return ToDTO(await _PartyRepository.RestoreAsync(entity=>entity.PartyPhoneNumber == PhoneNumber));
         }
 
-        public static PartyDTO ToDTO(Party party)
+        private static PartyDTO ToDTO(Party party)
         {
             return new PartyDTO
             {
@@ -98,11 +104,11 @@ namespace PolyBalance.Services.parties
                 Amount = party.PartyTotalAmount,
                 PhoneNumber = party.PartyPhoneNumber,
                 Address = party.PartyAddress ?? "",
-                Rateing = party.PartyRateing
+                Rating = party.PartyRating
             };
         }
 
-        public static Party ToEntity(PartyDTO dto)
+        private static Party ToEntity(PartyDTO dto)
         {
             return new Party
             {
@@ -111,7 +117,7 @@ namespace PolyBalance.Services.parties
                 PartyTypeId = dto.TypeId,
                 PartyPhoneNumber = dto.PhoneNumber,
                 PartyAddress = dto.Address,
-                PartyRateing = dto.Rateing,
+                PartyRating = dto.Rating,
                 PartyTotalAmount = dto.Amount,
                 IsActive = true
             };

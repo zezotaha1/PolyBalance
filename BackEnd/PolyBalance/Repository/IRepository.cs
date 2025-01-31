@@ -5,9 +5,12 @@ public interface IRepository<T> where T : class
 {
     Task<T> GetByIdAsync(int id);
     Task<ICollection<T>> GetAllAsync();
-   Task<ICollection<T>> FindAsync(Expression<Func<T, bool>> predicate);
-    Task AddAsync(T entity);
-    Task UpdateAsync(T entity);
+    Task<ICollection<T>> FindAsync(Expression<Func<T, bool>> predicate);
+    Task<T> AddAsync(T entity);
+    Task<T> UpdateAsync(T entity);
     Task DeleteByIdAsync(int id);
-    Task RestoreAsync(Expression<Func<T, bool>> predicate);
+    Task<T> RestoreAsync(Expression<Func<T, bool>> predicate);
+    Task<bool> IsUsedAsync(Expression<Func<T, bool>> predicate);
+    Task<bool> IsIdValidTypeAsync<Type>(int id) where Type : class;
+
 }

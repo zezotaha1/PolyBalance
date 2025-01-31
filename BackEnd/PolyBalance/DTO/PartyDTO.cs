@@ -9,7 +9,7 @@
         public required string Name { get; set; }
 
         public required string PhoneNumber { get; set; }
-        public int Rateing { get; set; }
+        public int Rating { get; set; }
 
         public string? Address { get; set; }
 

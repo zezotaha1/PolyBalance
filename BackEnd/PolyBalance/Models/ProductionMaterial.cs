@@ -14,7 +14,7 @@ public partial class ProductionMaterial : IActivatable
 
     public double QuantityUsedPerUnit { get; set; }
     public bool IsActive { get; set; }
-    public virtual ItemsPricesAndStore? ItemPrice { get; set; }
+    public virtual ItemPrice? ItemPrice { get; set; }
 
     public virtual ProductionOrder? ProductionOrder { get; set; }
 }

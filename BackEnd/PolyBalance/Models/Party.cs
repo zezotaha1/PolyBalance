@@ -21,11 +21,13 @@ public partial class Party : IActivatable
     [MaxLength(255)]
     public string? PartyAddress { get; set; }
 
-    public int PartyRateing { get; set; } = 0;
+    public int PartyRating { get; set; } = 0;
     public double PartyTotalAmount { get; set; }//sum all acount details
     public bool IsActive { get; set; }
 
-    public virtual PartyType? PartyType { get; set; }
+    public DateTime PartyCreatedAt { get; set; }= new DateTime();
+
+    public  PartyType PartyType { get; set; }
     public virtual ICollection<AccountDetail> AccountDetails { get; set; } = new List<AccountDetail>();
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();

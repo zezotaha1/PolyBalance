@@ -1,23 +1,21 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using PolyBalance.DTO;
-using PolyBalance.Services.parties;
-using System.ComponentModel.Design;
-using System.Data;
+using PolyBalance.Services.Items;
 using System.Data.SqlTypes;
+using System.Data;
 
 namespace PolyBalance.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    public class PartyController : ControllerBase
+    public class ItemController : ControllerBase
     {
-        private readonly IPartiesServices _PartiesServices;
+        private readonly IItemsServices _ItemsServices;
 
-        public PartyController(IPartiesServices partiesServices)
+        public ItemController(IItemsServices itemsServices)
         {
-            _PartiesServices = partiesServices;
+            _ItemsServices = itemsServices;
         }
 
         [HttpGet("{Id}")]
@@ -26,7 +24,7 @@ namespace PolyBalance.Controllers
 
             try
             {
-                var party = await _PartiesServices.GetPartyByIdAsync(Id);
+                var party = await _ItemsServices.GetItemByIdAsync(Id);
                 return Ok(party);
             }
             catch (SqlNullValueException ex)
@@ -45,27 +43,26 @@ namespace PolyBalance.Controllers
         {
             try
             {
-               var parties = await _PartiesServices.GetAllPartiesAsync();
-                return Ok(parties);
+                var Items =  await _ItemsServices.GetAllItemsAsync();
+                return Ok(Items);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
-
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(PartyDTO party)
+        public async Task<IActionResult> Create(ItemDTO Item)
         {
-            if (party == null)
+            if (Item == null)
             {
                 return BadRequest("NO Data");
             }
 
             try
             {
-                return Ok(await _PartiesServices.CreatePartyAsync(party));
+                return Ok(await _ItemsServices.CreateItemAsync(Item));
             }
             catch (Exception ex)
             {
@@ -74,16 +71,16 @@ namespace PolyBalance.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(PartyDTO party)
+        public async Task<IActionResult> Update(ItemDTO Item)
         {
-            if (party == null)
+            if (Item == null)
             {
                 return BadRequest("NO Data");
             }
 
             try
             {
-                return Ok(await _PartiesServices.UpdatePartyAsync(party));
+                return Ok(await _ItemsServices.UpdateItemAsync(Item));
             }
             catch (SqlNullValueException ex)
             {
@@ -104,7 +101,7 @@ namespace PolyBalance.Controllers
         {
             try
             {
-                await _PartiesServices.DeletePartyAsync(id);
+                await _ItemsServices.DeleteItemAsync(id);
                 return Ok("Deleted Successfully");
             }
             catch (SqlNullValueException ex)
@@ -115,34 +112,28 @@ namespace PolyBalance.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            catch (Exception ex) 
-            { 
+            catch (Exception ex)
+            {
                 return BadRequest(ex.Message);
             }
         }
 
-        [HttpPatch("{Number}")]
-        public async Task<IActionResult> Restore(string Number)
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> RestoreItem(int id)
         {
-            if (string.IsNullOrEmpty(Number))
-            {
-                return BadRequest("NO Data");
-            }
-
             try
             {
-                return Ok(await _PartiesServices.RestorePartyAsync(Number));
+                return Ok(await _ItemsServices.RestoreItemAsync(id));
             }
-            catch(SqlNullValueException ex)
+            catch (SqlNullValueException ex)
             {
                 return NotFound(ex.Message);
             }
             catch (Exception ex)
-            { 
+            {
                 return BadRequest(ex.Message);
             }
 
         }
-    
     }
 }

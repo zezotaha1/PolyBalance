@@ -32,10 +32,6 @@ namespace PolyBalance.Controllers
             {
                 return NotFound(ex.Message);
             }
-            catch (DeletedRowInaccessibleException ex)
-            {
-                return BadRequest(ex.Message);
-            }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
@@ -44,9 +40,17 @@ namespace PolyBalance.Controllers
         }
 
         [HttpGet]
-        public async Task<ICollection<PartyTypeDTO>> GetAllElements()
+        public async Task<IActionResult> GetAllElements()
         {
-            return await _PartyTypesServices.GetAllPartyTypesAsync();
+            try
+            {
+                var partyTypes = await _PartyTypesServices.GetAllPartyTypesAsync();
+                return Ok(partyTypes);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost]
@@ -59,8 +63,7 @@ namespace PolyBalance.Controllers
 
             try
             {
-                await _PartyTypesServices.CreatePartyTypeAsync(partyType);
-                return Ok();
+                return Ok(await _PartyTypesServices.CreatePartyTypeAsync(partyType));
             }
             catch (Exception ex)
             {
@@ -78,8 +81,7 @@ namespace PolyBalance.Controllers
 
             try
             {
-                await _PartyTypesServices.UpdatePartyTypeAsync(partyType);
-                return Ok();
+                return Ok(await _PartyTypesServices.UpdatePartyTypeAsync(partyType));
             }
             catch (SqlNullValueException ex)
             {
@@ -101,7 +103,7 @@ namespace PolyBalance.Controllers
             try
             {
                 await _PartyTypesServices.DeletePartyTypeAsync(id);
-                return Ok();
+                return Ok("Deleted Successfully");
             }
             catch (SqlNullValueException ex)
             {
@@ -122,8 +124,7 @@ namespace PolyBalance.Controllers
         {
             try
             {
-                await _PartyTypesServices.RestorePartyTypeAsync(id);
-                return Ok();
+                return Ok(await _PartyTypesServices.RestorePartyTypeAsync(id));
             }
             catch (SqlNullValueException ex)
             {

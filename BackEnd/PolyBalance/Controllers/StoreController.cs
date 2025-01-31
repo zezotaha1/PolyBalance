@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using PolyBalance.DTO;
-using PolyBalance.Services.parties;
-using System.ComponentModel.Design;
+using PolyBalance.Services.Stores;
 using System.Data;
 using System.Data.SqlTypes;
 
@@ -11,13 +9,13 @@ namespace PolyBalance.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    public class PartyController : ControllerBase
+    public class StoreController : ControllerBase
     {
-        private readonly IPartiesServices _PartiesServices;
+        private readonly IStoresServices _StoresServices;
 
-        public PartyController(IPartiesServices partiesServices)
+        public StoreController(IStoresServices partiesServices)
         {
-            _PartiesServices = partiesServices;
+            _StoresServices = partiesServices;
         }
 
         [HttpGet("{Id}")]
@@ -26,7 +24,7 @@ namespace PolyBalance.Controllers
 
             try
             {
-                var party = await _PartiesServices.GetPartyByIdAsync(Id);
+                var party = await _StoresServices.GetStoreByIdAsync(Id);
                 return Ok(party);
             }
             catch (SqlNullValueException ex)
@@ -45,27 +43,26 @@ namespace PolyBalance.Controllers
         {
             try
             {
-               var parties = await _PartiesServices.GetAllPartiesAsync();
-                return Ok(parties);
+                var stores = await _StoresServices.GetAllStoresAsync();
+                return Ok(stores);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
-
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(PartyDTO party)
+        public async Task<IActionResult> Create(StoreDTO Store)
         {
-            if (party == null)
+            if (Store == null)
             {
                 return BadRequest("NO Data");
             }
 
             try
             {
-                return Ok(await _PartiesServices.CreatePartyAsync(party));
+                return Ok(await _StoresServices.CreateStoreAsync(Store));
             }
             catch (Exception ex)
             {
@@ -74,16 +71,16 @@ namespace PolyBalance.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(PartyDTO party)
+        public async Task<IActionResult> Update(StoreDTO Store)
         {
-            if (party == null)
+            if (Store == null)
             {
                 return BadRequest("NO Data");
             }
 
             try
             {
-                return Ok(await _PartiesServices.UpdatePartyAsync(party));
+                return Ok(await _StoresServices.UpdateStoreAsync(Store));
             }
             catch (SqlNullValueException ex)
             {
@@ -104,8 +101,8 @@ namespace PolyBalance.Controllers
         {
             try
             {
-                await _PartiesServices.DeletePartyAsync(id);
-                return Ok("Deleted Successfully");
+                await _StoresServices.DeleteStoreAsync(id);
+                return Ok("DEleted Successfully");
             }
             catch (SqlNullValueException ex)
             {
@@ -115,34 +112,28 @@ namespace PolyBalance.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            catch (Exception ex) 
-            { 
+            catch (Exception ex)
+            {
                 return BadRequest(ex.Message);
             }
         }
 
-        [HttpPatch("{Number}")]
-        public async Task<IActionResult> Restore(string Number)
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> Restore(int id)
         {
-            if (string.IsNullOrEmpty(Number))
-            {
-                return BadRequest("NO Data");
-            }
-
             try
             {
-                return Ok(await _PartiesServices.RestorePartyAsync(Number));
+                return Ok(await _StoresServices.RestoreStoreAsync(id));
             }
-            catch(SqlNullValueException ex)
+            catch (SqlNullValueException ex)
             {
                 return NotFound(ex.Message);
             }
             catch (Exception ex)
-            { 
+            {
                 return BadRequest(ex.Message);
             }
 
         }
-    
     }
 }

@@ -9,7 +9,7 @@ public partial class Expense : IActivatable
 {
     public int ExpenseId { get; set; }
 
-    public DateOnly ExpenseDate { get; set; }
+    public DateTime ExpenseDate { get; set; }
 
     public double Amount { get; set; }
     [MaxLength(50)]

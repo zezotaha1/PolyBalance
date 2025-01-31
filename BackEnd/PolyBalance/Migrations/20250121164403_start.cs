@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PolyBalance.Migrations
 {
     /// <inheritdoc />
-    public partial class intialDatabase : Migration
+    public partial class start : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,7 +19,7 @@ namespace PolyBalance.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ExpenseDate = table.Column<DateOnly>(type: "date", nullable: false),
                     Amount = table.Column<double>(type: "float", nullable: false),
-                    ExpenseType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    ExpenseType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     Note = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -29,22 +29,23 @@ namespace PolyBalance.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "InventoryItems",
+                name: "Items",
                 columns: table => new
                 {
-                    InventoryItemId = table.Column<int>(type: "int", nullable: false)
+                    ItemId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Type = table.Column<bool>(type: "bit", nullable: false),
-                    Unit = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    CurrentStock = table.Column<double>(type: "float", nullable: true),
-                    ReorderLevel = table.Column<double>(type: "float", nullable: true),
+                    ItemName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    ItemDescription = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ItemType = table.Column<bool>(type: "bit", nullable: false),
+                    ItemUnit = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    ItemCurrentStock = table.Column<double>(type: "float", nullable: false),
+                    ItemCreatedAt = table.Column<DateOnly>(type: "date", nullable: false),
+                    ItemReorderLevel = table.Column<double>(type: "float", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_InventoryItems", x => x.InventoryItemId);
+                    table.PrimaryKey("PK_Items", x => x.ItemId);
                 });
 
             migrationBuilder.CreateTable(
@@ -67,9 +68,9 @@ namespace PolyBalance.Migrations
                 {
                     StoreId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Capacity = table.Column<double>(type: "float", nullable: true),
+                    StoreName = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    StoreAddress = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    StoreCapacity = table.Column<double>(type: "float", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -97,6 +98,29 @@ namespace PolyBalance.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ItemsPrices",
+                columns: table => new
+                {
+                    ItemPriceId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ItemId = table.Column<int>(type: "int", nullable: false),
+                    ItemPriceUnitCost = table.Column<double>(type: "float", nullable: false),
+                    ItemPriceCurrentStock = table.Column<double>(type: "float", nullable: false),
+                    ItemPriceCreatedAt = table.Column<DateOnly>(type: "date", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ItemsPrices", x => x.ItemPriceId);
+                    table.ForeignKey(
+                        name: "FK_ItemsPrices_Items_ItemId",
+                        column: x => x.ItemId,
+                        principalTable: "Items",
+                        principalColumn: "ItemId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ProductionOrders",
                 columns: table => new
                 {
@@ -114,10 +138,10 @@ namespace PolyBalance.Migrations
                 {
                     table.PrimaryKey("PK_ProductionOrders", x => x.ProductionOrderId);
                     table.ForeignKey(
-                        name: "FK_ProductionOrders_InventoryItems_InventoryItemId",
+                        name: "FK_ProductionOrders_Items_InventoryItemId",
                         column: x => x.InventoryItemId,
-                        principalTable: "InventoryItems",
-                        principalColumn: "InventoryItemId");
+                        principalTable: "Items",
+                        principalColumn: "ItemId");
                 });
 
             migrationBuilder.CreateTable(
@@ -130,8 +154,10 @@ namespace PolyBalance.Migrations
                     PartyName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     PartyPhoneNumber = table.Column<string>(type: "nvarchar(11)", maxLength: 11, nullable: false),
                     PartyAddress = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    PartyRating = table.Column<int>(type: "int", nullable: false),
                     PartyTotalAmount = table.Column<double>(type: "float", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    PartyCreatedAt = table.Column<DateOnly>(type: "date", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -142,35 +168,6 @@ namespace PolyBalance.Migrations
                         principalTable: "PartyTypes",
                         principalColumn: "PartyTypeId",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ItemsPricesAndStores",
-                columns: table => new
-                {
-                    ItemsPricesAndStoreId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    InventoryItemId = table.Column<int>(type: "int", nullable: true),
-                    StoreId = table.Column<int>(type: "int", nullable: true),
-                    UnitCost = table.Column<double>(type: "float", nullable: false),
-                    UnitSellingPrice = table.Column<double>(type: "float", nullable: true),
-                    StorageDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    CurrentStock = table.Column<double>(type: "float", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ItemsPricesAndStores", x => x.ItemsPricesAndStoreId);
-                    table.ForeignKey(
-                        name: "FK_ItemsPricesAndStores_InventoryItems_InventoryItemId",
-                        column: x => x.InventoryItemId,
-                        principalTable: "InventoryItems",
-                        principalColumn: "InventoryItemId");
-                    table.ForeignKey(
-                        name: "FK_ItemsPricesAndStores_Stores_StoreId",
-                        column: x => x.StoreId,
-                        principalTable: "Stores",
-                        principalColumn: "StoreId");
                 });
 
             migrationBuilder.CreateTable(
@@ -196,6 +193,29 @@ namespace PolyBalance.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "InventoryAdjustments",
+                columns: table => new
+                {
+                    InventoryAdjustmentId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ItemsPricesId = table.Column<int>(type: "int", nullable: true),
+                    AdjustmentType = table.Column<bool>(type: "bit", nullable: false),
+                    QuantityChange = table.Column<double>(type: "float", nullable: false),
+                    AdjustmentDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InventoryAdjustments", x => x.InventoryAdjustmentId);
+                    table.ForeignKey(
+                        name: "FK_InventoryAdjustments_ItemsPrices_ItemsPricesId",
+                        column: x => x.ItemsPricesId,
+                        principalTable: "ItemsPrices",
+                        principalColumn: "ItemPriceId");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Overheads",
                 columns: table => new
                 {
@@ -217,78 +237,6 @@ namespace PolyBalance.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AccountDetails",
-                columns: table => new
-                {
-                    AccountDetailId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    PartyId = table.Column<int>(type: "int", nullable: true),
-                    Type = table.Column<bool>(type: "bit", nullable: true),
-                    OprationId = table.Column<int>(type: "int", nullable: true),
-                    OprationType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Amount = table.Column<double>(type: "float", nullable: false),
-                    Note = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AccountDetails", x => x.AccountDetailId);
-                    table.ForeignKey(
-                        name: "FK_AccountDetails_Parties_PartyId",
-                        column: x => x.PartyId,
-                        principalTable: "Parties",
-                        principalColumn: "PartyId");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Orders",
-                columns: table => new
-                {
-                    OrderId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    OrderType = table.Column<bool>(type: "bit", nullable: false),
-                    PartyId = table.Column<int>(type: "int", nullable: true),
-                    OrderDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    TotalAmount = table.Column<double>(type: "float", nullable: false),
-                    Discount = table.Column<float>(type: "real", nullable: false),
-                    LineTotal = table.Column<double>(type: "float", nullable: false, computedColumnSql: "[TotalAmount]-([TotalAmount]*[Discount])", stored: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Orders", x => x.OrderId);
-                    table.ForeignKey(
-                        name: "FK_Orders_Parties_PartyId",
-                        column: x => x.PartyId,
-                        principalTable: "Parties",
-                        principalColumn: "PartyId");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "InventoryAdjustments",
-                columns: table => new
-                {
-                    InventoryAdjustmentId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ItemsPricesAndStoreId = table.Column<int>(type: "int", nullable: true),
-                    AdjustmentType = table.Column<bool>(type: "bit", nullable: false),
-                    QuantityChange = table.Column<double>(type: "float", nullable: false),
-                    AdjustmentDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_InventoryAdjustments", x => x.InventoryAdjustmentId);
-                    table.ForeignKey(
-                        name: "FK_InventoryAdjustments_ItemsPricesAndStores_ItemsPricesAndStoreId",
-                        column: x => x.ItemsPricesAndStoreId,
-                        principalTable: "ItemsPricesAndStores",
-                        principalColumn: "ItemsPricesAndStoreId");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ProductionMaterials",
                 columns: table => new
                 {
@@ -303,15 +251,66 @@ namespace PolyBalance.Migrations
                 {
                     table.PrimaryKey("PK_ProductionMaterials", x => x.ProductionMaterialId);
                     table.ForeignKey(
-                        name: "FK_ProductionMaterials_ItemsPricesAndStores_ItemsPricesAndStoreId",
+                        name: "FK_ProductionMaterials_ItemsPrices_ItemsPricesAndStoreId",
                         column: x => x.ItemsPricesAndStoreId,
-                        principalTable: "ItemsPricesAndStores",
-                        principalColumn: "ItemsPricesAndStoreId");
+                        principalTable: "ItemsPrices",
+                        principalColumn: "ItemPriceId");
                     table.ForeignKey(
                         name: "FK_ProductionMaterials_ProductionOrders_ProductionOrderId",
                         column: x => x.ProductionOrderId,
                         principalTable: "ProductionOrders",
                         principalColumn: "ProductionOrderId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AccountDetails",
+                columns: table => new
+                {
+                    AccountDetailId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PartyId = table.Column<int>(type: "int", nullable: false),
+                    AccountDetailType = table.Column<int>(type: "int", nullable: false),
+                    OrderId = table.Column<int>(type: "int", nullable: true),
+                    AccountDetailAmount = table.Column<double>(type: "float", nullable: false),
+                    AccountDetailNote = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    AccountDetailCreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AccountDetails", x => x.AccountDetailId);
+                    table.ForeignKey(
+                        name: "FK_AccountDetails_Parties_PartyId",
+                        column: x => x.PartyId,
+                        principalTable: "Parties",
+                        principalColumn: "PartyId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Orders",
+                columns: table => new
+                {
+                    OrderId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    OrderType = table.Column<bool>(type: "bit", nullable: false),
+                    PartyId = table.Column<int>(type: "int", nullable: true),
+                    OrderDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    OrderTotalAmount = table.Column<double>(type: "float", nullable: false),
+                    OrderDiscount = table.Column<float>(type: "real", nullable: false),
+                    OrderLineTotal = table.Column<double>(type: "float", nullable: false, computedColumnSql: "[OrderTotalAmount]-([OrderTotalAmount]*[OrderDiscount])", stored: true),
+                    OrderPaid = table.Column<double>(type: "float", nullable: false),
+                    OrderRemender = table.Column<double>(type: "float", nullable: false, computedColumnSql: "([OrderTotalAmount]-([OrderTotalAmount]*[OrderDiscount]))-[OrderPaid]", stored: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Orders", x => x.OrderId);
+                    table.ForeignKey(
+                        name: "FK_Orders_Parties_PartyId",
+                        column: x => x.PartyId,
+                        principalTable: "Parties",
+                        principalColumn: "PartyId");
                 });
 
             migrationBuilder.CreateTable(
@@ -321,7 +320,7 @@ namespace PolyBalance.Migrations
                     OrderDetailId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     OrderId = table.Column<int>(type: "int", nullable: true),
-                    ItemsPricesAndStoreId = table.Column<int>(type: "int", nullable: true),
+                    ItemsPriceId = table.Column<int>(type: "int", nullable: true),
                     Quantity = table.Column<double>(type: "float", nullable: false),
                     UnitPrice = table.Column<double>(type: "float", nullable: false),
                     TotalPrice = table.Column<double>(type: "float", nullable: false, computedColumnSql: "([Quantity]*[UnitPrice])", stored: true),
@@ -333,10 +332,10 @@ namespace PolyBalance.Migrations
                 {
                     table.PrimaryKey("PK_OrderDetails", x => x.OrderDetailId);
                     table.ForeignKey(
-                        name: "FK_OrderDetails_ItemsPricesAndStores_ItemsPricesAndStoreId",
-                        column: x => x.ItemsPricesAndStoreId,
-                        principalTable: "ItemsPricesAndStores",
-                        principalColumn: "ItemsPricesAndStoreId");
+                        name: "FK_OrderDetails_ItemsPrices_ItemsPriceId",
+                        column: x => x.ItemsPriceId,
+                        principalTable: "ItemsPrices",
+                        principalColumn: "ItemPriceId");
                     table.ForeignKey(
                         name: "FK_OrderDetails_Orders_OrderId",
                         column: x => x.OrderId,
@@ -350,24 +349,26 @@ namespace PolyBalance.Migrations
                 column: "PartyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_InventoryAdjustments_ItemsPricesAndStoreId",
+                name: "IX_InventoryAdjustments_ItemsPricesId",
                 table: "InventoryAdjustments",
-                column: "ItemsPricesAndStoreId");
+                column: "ItemsPricesId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ItemsPricesAndStores_InventoryItemId",
-                table: "ItemsPricesAndStores",
-                column: "InventoryItemId");
+                name: "IX_Items_ItemName",
+                table: "Items",
+                column: "ItemName",
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ItemsPricesAndStores_StoreId",
-                table: "ItemsPricesAndStores",
-                column: "StoreId");
+                name: "IX_ItemsPrices_ItemId_ItemPriceUnitCost",
+                table: "ItemsPrices",
+                columns: new[] { "ItemId", "ItemPriceUnitCost" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrderDetails_ItemsPricesAndStoreId",
+                name: "IX_OrderDetails_ItemsPriceId",
                 table: "OrderDetails",
-                column: "ItemsPricesAndStoreId");
+                column: "ItemsPriceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderDetails_OrderId",
@@ -396,6 +397,12 @@ namespace PolyBalance.Migrations
                 column: "PartyTypeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PartyTypes_PartyTypeName",
+                table: "PartyTypes",
+                column: "PartyTypeName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PaymentDetails_TransactionId",
                 table: "PaymentDetails",
                 column: "TransactionId");
@@ -414,6 +421,12 @@ namespace PolyBalance.Migrations
                 name: "IX_ProductionOrders_InventoryItemId",
                 table: "ProductionOrders",
                 column: "InventoryItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Stores_StoreName_StoreAddress",
+                table: "Stores",
+                columns: new[] { "StoreName", "StoreAddress" },
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -441,13 +454,16 @@ namespace PolyBalance.Migrations
                 name: "ProductionMaterials");
 
             migrationBuilder.DropTable(
+                name: "Stores");
+
+            migrationBuilder.DropTable(
                 name: "Orders");
 
             migrationBuilder.DropTable(
                 name: "Transactions");
 
             migrationBuilder.DropTable(
-                name: "ItemsPricesAndStores");
+                name: "ItemsPrices");
 
             migrationBuilder.DropTable(
                 name: "ProductionOrders");
@@ -456,10 +472,7 @@ namespace PolyBalance.Migrations
                 name: "Parties");
 
             migrationBuilder.DropTable(
-                name: "Stores");
-
-            migrationBuilder.DropTable(
-                name: "InventoryItems");
+                name: "Items");
 
             migrationBuilder.DropTable(
                 name: "PartyTypes");

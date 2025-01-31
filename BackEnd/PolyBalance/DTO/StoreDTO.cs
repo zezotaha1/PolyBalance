@@ -7,10 +7,11 @@ namespace PolyBalance.DTO
 
         [Required]
         [MaxLength(30)]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
+        [Required]
         [MaxLength(50)]
-        public string Address { get; set; }
+        public required string Address { get; set; }
 
         public double Capacity { get; set; }
     }

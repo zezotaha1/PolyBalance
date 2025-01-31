@@ -1,26 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PolyBalance.DTO;
-using PolyBalance.Models;
+﻿using PolyBalance.DTO;
 
 namespace PolyBalance.Services
 {
     public class Validation
     {
-        private readonly PolyBalanceDbContext _polyBalanceDbContext;
-
-        public Validation(PolyBalanceDbContext polyBalanceDbContext)
-        {
-            _polyBalanceDbContext = polyBalanceDbContext;
-        }
-
+       
         // Validate the entire PartyDTO
-        public async Task<bool> ValidPartyAsync(PartyDTO party)
+        public bool ValidPartyAsync(PartyDTO party)
         {
-            return await NameValidationAsync(party.Name) && await PhoneNumberValidationAsync(party.PhoneNumber)&& await IsIdValidType<PartyType>(party.TypeId);
+            return NameValidationAsync(party.Name) && PhoneNumberValidationAsync(party.PhoneNumber);
         }
 
         // Validate the name
-        public async Task<bool> NameValidationAsync(string name)
+        public bool NameValidationAsync(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -36,7 +28,7 @@ namespace PolyBalance.Services
         }
 
         // Validate the phone number
-        public async Task<bool> PhoneNumberValidationAsync(string number)
+        public  bool PhoneNumberValidationAsync(string number)
         {
             if (string.IsNullOrWhiteSpace(number))
             {
@@ -59,21 +51,6 @@ namespace PolyBalance.Services
                 throw new ArgumentException("Phone number must contain only numeric characters.");
             }
 
-            var isNumberUsed = await _polyBalanceDbContext.Parties.AnyAsync(e => e.PartyPhoneNumber == number);
-            if (isNumberUsed)
-            {
-                throw new InvalidOperationException("This phone number has already been used.");
-            }
-
-            return true;
-        }
-        public async Task<bool> IsIdValidType<T>(int id) where T : class
-        {
-            var entity =await _polyBalanceDbContext.Set<T>().FindAsync(id);
-            if( entity == null)
-            {
-                throw new InvalidOperationException("This Type is not existed");
-            }
             return true;
         }
 

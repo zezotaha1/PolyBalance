@@ -10,14 +10,13 @@ public partial class Store : IActivatable
 
     [Required]
     [MaxLength(30)]
-    public string StoreName { get; set; }
-
+    public required string StoreName { get; set; }
+    [Required]
     [MaxLength(50)]
-    public string? StoreAddress { get; set; }
+    public required string StoreAddress { get; set; }
 
     public double StoreCapacity { get; set; } = int.MaxValue; // Default to 0 if nullable
 
     public bool IsActive { get; set; }
 
-    public virtual ICollection<ItemsPricesAndStore> ItemsPricesAndStores { get; set; } = new List<ItemsPricesAndStore>();
 }

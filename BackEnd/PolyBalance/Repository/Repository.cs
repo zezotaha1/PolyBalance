@@ -31,21 +31,24 @@ namespace PolyBalance.Repository
         {
             return await _dbSet.Where(e => e.IsActive).AsNoTracking().ToListAsync();
         }
+
         public async Task<ICollection<T>> FindAsync(Expression<Func<T, bool>> predicate)
         {
             return await _dbSet.Where(e => e.IsActive).Where(predicate).ToListAsync();
         }
 
-        public async Task AddAsync(T entity)
+        public async Task<T> AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
             await _dbContext.SaveChangesAsync();
+            return entity;
         }
 
-        public async Task UpdateAsync(T entity)
+        public async Task<T> UpdateAsync(T entity)
         {
             _dbSet.Update(entity);
             await _dbContext.SaveChangesAsync();
+            return entity;
         }
         public async Task DeleteByIdAsync(int id)
         {
@@ -54,7 +57,7 @@ namespace PolyBalance.Repository
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task RestoreAsync(Expression<Func<T, bool>> predicate)
+        public async Task<T> RestoreAsync(Expression<Func<T, bool>> predicate)
         {
             var entity = await _dbSet.SingleOrDefaultAsync(predicate) ?? throw new SqlNullValueException("This entity Not Found");
             if (entity.IsActive)
@@ -64,7 +67,19 @@ namespace PolyBalance.Repository
 
             entity.IsActive = true;
             await _dbContext.SaveChangesAsync();
+            return entity;
 
+        }
+
+        public async Task<bool> IsUsedAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbSet.AnyAsync(predicate);
+        }
+
+        public async Task<bool> IsIdValidTypeAsync<Type>(int id) where Type : class
+        {
+            var entity = await _dbContext.Set<Type>().FindAsync(id);
+            return entity == null ? throw new InvalidOperationException($"This {typeof(Type).Name} is not existed") : true;
         }
 
     }

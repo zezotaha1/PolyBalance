@@ -5,6 +5,11 @@ using PolyBalance.Services.parties;
 using PolyBalance.Services;
 using PolyBalance.Repository;
 using PolyBalance.Services.PartyTypes;
+using PolyBalance.Services.Stores;
+using PolyBalance.Services.Items;
+using PolyBalance.Services.ItemsPrices;
+using PolyBalance.Services.AccountDetailes;
+using PolyBalance.Services.Orders;
 
 internal class Program
 {
@@ -29,6 +34,13 @@ internal class Program
         builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         builder.Services.AddScoped<IPartiesServices, PartiesServices>();
         builder.Services.AddScoped<IPartyTypesServices, PartyTypesServices>();
+        builder.Services.AddScoped<IStoresServices, StoresServices>();
+        builder.Services.AddScoped<IItemsServices, ItemsServices>();
+        builder.Services.AddScoped<IItemsPricesServices, ItemsPricesServices>();
+        builder.Services.AddScoped<IAccountDetailesServices, AccountDetailesServices>();
+        builder.Services.AddScoped<IOrdersServices, OrdersServices>();
+
+
 
         // Add CORS configuration
         builder.Services.AddCors(options =>

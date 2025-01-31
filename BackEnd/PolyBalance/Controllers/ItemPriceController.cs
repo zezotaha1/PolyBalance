@@ -1,23 +1,21 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using PolyBalance.DTO;
-using PolyBalance.Services.parties;
-using System.ComponentModel.Design;
-using System.Data;
+using PolyBalance.Services.ItemsPrices;
 using System.Data.SqlTypes;
+using System.Data;
 
 namespace PolyBalance.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    public class PartyController : ControllerBase
+    public class ItemPriceController : ControllerBase
     {
-        private readonly IPartiesServices _PartiesServices;
+        private readonly IItemsPricesServices _ItemsPricesServices;
 
-        public PartyController(IPartiesServices partiesServices)
+        public ItemPriceController(IItemsPricesServices partiesServices)
         {
-            _PartiesServices = partiesServices;
+            _ItemsPricesServices = partiesServices;
         }
 
         [HttpGet("{Id}")]
@@ -26,7 +24,7 @@ namespace PolyBalance.Controllers
 
             try
             {
-                var party = await _PartiesServices.GetPartyByIdAsync(Id);
+                var party = await _ItemsPricesServices.GetItemPriceByIdAsync(Id);
                 return Ok(party);
             }
             catch (SqlNullValueException ex)
@@ -45,27 +43,26 @@ namespace PolyBalance.Controllers
         {
             try
             {
-               var parties = await _PartiesServices.GetAllPartiesAsync();
-                return Ok(parties);
+                var ItemPrices = await _ItemsPricesServices.GetAllItemPricesAsync();
+                return Ok(ItemPrices);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
-
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(PartyDTO party)
+        public async Task<IActionResult> Create(ItemPriceDTO ItemPrice)
         {
-            if (party == null)
+            if (ItemPrice == null)
             {
                 return BadRequest("NO Data");
             }
 
             try
             {
-                return Ok(await _PartiesServices.CreatePartyAsync(party));
+                return Ok(await _ItemsPricesServices.CreateItemPriceAsync(ItemPrice));
             }
             catch (Exception ex)
             {
@@ -74,16 +71,16 @@ namespace PolyBalance.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(PartyDTO party)
+        public async Task<IActionResult> Update(ItemPriceDTO ItemPrice)
         {
-            if (party == null)
+            if (ItemPrice == null)
             {
                 return BadRequest("NO Data");
             }
 
             try
             {
-                return Ok(await _PartiesServices.UpdatePartyAsync(party));
+                return Ok(await _ItemsPricesServices.UpdateItemPriceAsync(ItemPrice));
             }
             catch (SqlNullValueException ex)
             {
@@ -104,8 +101,8 @@ namespace PolyBalance.Controllers
         {
             try
             {
-                await _PartiesServices.DeletePartyAsync(id);
-                return Ok("Deleted Successfully");
+                await _ItemsPricesServices.DeleteItemPriceAsync(id);
+                return Ok("DEleted Successfully");
             }
             catch (SqlNullValueException ex)
             {
@@ -115,34 +112,28 @@ namespace PolyBalance.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            catch (Exception ex) 
-            { 
+            catch (Exception ex)
+            {
                 return BadRequest(ex.Message);
             }
         }
 
-        [HttpPatch("{Number}")]
-        public async Task<IActionResult> Restore(string Number)
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> ReItemPrice(int id)
         {
-            if (string.IsNullOrEmpty(Number))
-            {
-                return BadRequest("NO Data");
-            }
-
             try
             {
-                return Ok(await _PartiesServices.RestorePartyAsync(Number));
+                return Ok(await _ItemsPricesServices.RestoreItemPriceAsync(id));
             }
-            catch(SqlNullValueException ex)
+            catch (SqlNullValueException ex)
             {
                 return NotFound(ex.Message);
             }
             catch (Exception ex)
-            { 
+            {
                 return BadRequest(ex.Message);
             }
 
         }
-    
     }
 }

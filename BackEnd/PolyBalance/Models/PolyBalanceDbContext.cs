@@ -11,8 +11,8 @@ namespace PolyBalance.Models
         public virtual required DbSet<AccountDetail> AccountDetails { get; set; }
         public virtual required DbSet<Expense> Expenses { get; set; }
         public virtual required DbSet<InventoryAdjustment> InventoryAdjustments { get; set; }
-        public virtual required DbSet<InventoryItem> InventoryItems { get; set; }
-        public virtual required DbSet<ItemsPricesAndStore> ItemsPricesAndStores { get; set; }
+        public virtual required DbSet<Item> Items { get; set; }
+        public virtual required DbSet<ItemPrice> ItemsPrices { get; set; }
         public virtual required DbSet<Order> Orders { get; set; }
         public virtual required DbSet<OrderDetail> OrderDetails { get; set; }
         public virtual required DbSet<Overhead> Overheads { get; set; }
@@ -31,51 +31,52 @@ namespace PolyBalance.Models
                 entity.HasOne(d => d.Party)
                       .WithMany(p => p.AccountDetails)
                       .HasForeignKey(d => d.PartyId);
+                entity.ToTable(tb => tb.HasTrigger("UpdateAccountDetailsAmount"));
+            });
+
+            modelBuilder.Entity<Store>()
+            .HasIndex(s => new { s.StoreName, s.StoreAddress })
+            .IsUnique();
+
+            modelBuilder.Entity<Item>().HasIndex(item => item.ItemName).IsUnique();
+
+            modelBuilder.Entity<ItemPrice>(entity =>
+            {
+                entity.HasOne(d => d.Item)
+                      .WithMany(p => p.ItemsPrices)
+                      .HasForeignKey(d => d.ItemId);
+                entity.HasIndex(d =>new { d.ItemId,d.ItemPriceUnitCost }).IsUnique();
+                entity.ToTable(tb => tb.HasTrigger("UpdateItemCurrentStock"));
             });
 
             modelBuilder.Entity<InventoryAdjustment>(entity =>
             {
                 entity.HasOne(d => d.ItemPrice)
                       .WithMany(p => p.InventoryAdjustments)
-                      .HasForeignKey(d => d.ItemsPricesAndStoreId);
-            });
-
-            modelBuilder.Entity<ItemsPricesAndStore>(entity =>
-            {
-                entity.HasOne(d => d.Item)
-                      .WithMany(p => p.ItemsPricesAndStores)
-                      .HasForeignKey(d => d.InventoryItemId);
-
-                entity.HasOne(d => d.Store)
-                      .WithMany(p => p.ItemsPricesAndStores)
-                      .HasForeignKey(d => d.StoreId);
+                      .HasForeignKey(d => d.ItemsPricesId);
             });
 
             modelBuilder.Entity<Order>(entity =>
             {
-                entity.Property(d => d.LineTotal)
-                      .HasComputedColumnSql("[TotalAmount]-([TotalAmount]*[Discount])", true);
 
                 entity.HasOne(d => d.Party)
                       .WithMany(p => p.Orders)
                       .HasForeignKey(d => d.PartyId);
+
             });
 
             modelBuilder.Entity<OrderDetail>(entity =>
             {
-                entity.Property(e => e.TotalPrice)
-                      .HasComputedColumnSql("([Quantity]*[UnitPrice])", true);
-
-                entity.Property(d => d.LineTotal)
-                      .HasComputedColumnSql("([Quantity]*[UnitPrice])-(([Quantity]*[UnitPrice])*[Discount])", true);
-
-                entity.HasOne(d => d.ItemPrice)
-                      .WithMany(p => p.OrderDetails)
-                      .HasForeignKey(d => d.ItemsPricesAndStoreId);
 
                 entity.HasOne(d => d.Order)
                       .WithMany(p => p.OrderDetails)
                       .HasForeignKey(d => d.OrderId);
+                entity.HasOne(d => d.ItemPrice)
+                      .WithMany(p => p.OrderDetail)
+                      .HasForeignKey(d => d.ItemPriceId);
+                entity.HasIndex(d => new { d.OrderId, d.ItemPriceId}).IsUnique();
+                entity.ToTable(tb => tb.HasTrigger("UpdateItemPriceCorntStockWhenInsert"));
+
             });
 
             modelBuilder.Entity<Overhead>(entity =>
@@ -85,6 +86,7 @@ namespace PolyBalance.Models
                       .HasForeignKey(d => d.ProductionOrderId);
             });
 
+
             modelBuilder.Entity<Party>(entity =>
             {
                 entity.HasOne(d => d.PartyType)
@@ -92,6 +94,7 @@ namespace PolyBalance.Models
                       .HasForeignKey(d => d.PartyTypeId);
 
                 entity.HasIndex(p => p.PartyPhoneNumber).IsUnique();
+                entity.ToTable(tb => tb.HasTrigger("UpdatePartyAmount"));
             });
 
             modelBuilder.Entity<PartyType>().HasIndex(pt => pt.PartyTypeName).IsUnique();

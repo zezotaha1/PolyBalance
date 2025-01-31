@@ -22,13 +22,7 @@ namespace PolyBalance.Services.Stores
         public async Task<StoreDTO> GetStoreByIdAsync(int id)
         {
             var store = await _repositoryStore.GetByIdAsync(id);
-            return new StoreDTO
-            {
-                Id = store.StoreId,
-                Name = store.StoreName,
-                Address = store.StoreAddress,
-                Capacity = store.StoreCapacity
-            };
+            return ToDTO(store);
         }
 
         public async Task<ICollection<StoreDTO>> GetAllStoresAsync()
@@ -37,44 +31,66 @@ namespace PolyBalance.Services.Stores
             var stores = new List<StoreDTO>();
             foreach (var store in storesFromDatabase)
             {
-                stores.Add(new StoreDTO
-                {
-                    Id = store.StoreId,
-                    Name = store.StoreName,
-                    Address = store.StoreAddress,
-                    Capacity = store.StoreCapacity
-                });
+                stores.Add(ToDTO(store));
             }
             return stores;
         }
 
-        public async Task CreateStoreAsync(StoreDTO StoreDTO)
+        public async Task<StoreDTO> CreateStoreAsync(StoreDTO StoreDTO)
         {
-            if(await _validation.NameValidationAsync(StoreDTO.Name))
+            StoreDTO.Id = 0;
+            _validation.NameValidationAsync(StoreDTO.Name);
+            
+            if(await _repositoryStore.IsUsedAsync(s=>s.StoreName == StoreDTO.Name&&s.StoreAddress == StoreDTO.Address))
             {
-                var store = new Store { 
-                    IsActive = true,
-                    StoreName = StoreDTO.Name,
-                    StoreCapacity = StoreDTO.Capacity,
-                    StoreAddress = StoreDTO.Address
-                };
-                await _repositoryStore.AddAsync(store);
+                throw new Exception("this name and address together have already been used.");
             }
+            return ToDTO(await _repositoryStore.AddAsync(ToEntity(StoreDTO)));
         }
 
-        public Task UpdateStoreAsync(StoreDTO StoreDTO)
+        public async Task<StoreDTO> UpdateStoreAsync(StoreDTO StoreDTO)
         {
-            throw new NotImplementedException();
+            var store = await _repositoryStore.GetByIdAsync(StoreDTO.Id);
+            _validation.NameValidationAsync(StoreDTO.Name);
+
+            if (await _repositoryStore.IsUsedAsync(s => s.StoreName == StoreDTO.Name && s.StoreAddress == StoreDTO.Address))
+            {
+                throw new Exception("this name and address together have already been used.");
+            }
+            return ToDTO(await _repositoryStore.UpdateAsync(ToEntity(StoreDTO)));
         }
         
-        public Task DeleteStoreAsync(int id)
+        public async Task DeleteStoreAsync(int id)
         {
-            throw new NotImplementedException();
+            await _repositoryStore.DeleteByIdAsync(id);
         }
 
-        public Task RestoreStoreAsync(int id)
+        public async Task<StoreDTO> RestoreStoreAsync(int id)
         {
-            throw new NotImplementedException();
+            return ToDTO(await _repositoryStore.RestoreAsync(entity => entity.StoreId == id));
+        }
+
+        private static StoreDTO ToDTO(Store store)
+        {
+            return new StoreDTO
+            {
+                Id =store.StoreId,
+                Name = store.StoreName,
+                Address = store.StoreAddress,
+                Capacity = store.StoreCapacity
+            };
+        }
+
+        private static Store ToEntity(StoreDTO dto)
+        {
+            return new Store
+            {
+                StoreId = dto.Id,
+                StoreName = dto.Name,
+                StoreAddress = dto.Address,
+                StoreCapacity = dto.Capacity,
+                IsActive = true
+            };
         }
 
     }
