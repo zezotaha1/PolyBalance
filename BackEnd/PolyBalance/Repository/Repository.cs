@@ -17,24 +17,44 @@ namespace PolyBalance.Repository
             _dbSet = _dbContext.Set<T>();
         }
 
-        public async Task<T> GetByIdAsync(int id)
+        private IQueryable<T> IncludeRelations(params Expression<Func<T, object>>[] includes)
         {
-            var entity = await _dbSet.FindAsync(id) ?? throw new SqlNullValueException("This Id Not Found");
-            if (entity.IsActive == false)
+            IQueryable<T> query = _dbSet;
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+            return query;
+        }
+
+        public async Task<T> GetByIdAsync(int id, params Expression<Func<T, object>>[] includes)
+        {
+            var query = IncludeRelations(includes);
+            var entity = await query.FirstOrDefaultAsync(e => EF.Property<int>(e, $"{typeof(T).Name}Id") == id)
+                         ?? throw new SqlNullValueException("This Id Not Found");
+
+            if (!entity.IsActive)
             {
                 throw new DeletedRowInaccessibleException("This element has been deleted");
             }
+
             return entity;
         }
 
-        public async Task<ICollection<T>> GetAllAsync()
+        public async Task<ICollection<T>> GetAllAsync(params Expression<Func<T, object>>[] includes)
         {
-            return await _dbSet.Where(e => e.IsActive).AsNoTracking().ToListAsync();
+            return await IncludeRelations(includes)
+                .Where(e => e.IsActive)
+                .AsNoTracking()
+                .ToListAsync();
         }
 
-        public async Task<ICollection<T>> FindAsync(Expression<Func<T, bool>> predicate)
+        public async Task<ICollection<T>> FindAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
         {
-            return await _dbSet.Where(e => e.IsActive).Where(predicate).ToListAsync();
+            return await IncludeRelations(includes)
+                .Where(e => e.IsActive)
+                .Where(predicate)
+                .ToListAsync();
         }
 
         public async Task<T> AddAsync(T entity)
@@ -50,6 +70,7 @@ namespace PolyBalance.Repository
             await _dbContext.SaveChangesAsync();
             return entity;
         }
+
         public async Task DeleteByIdAsync(int id)
         {
             var entity = await GetByIdAsync(id) ?? throw new SqlNullValueException("This entity Not Found");
@@ -68,7 +89,6 @@ namespace PolyBalance.Repository
             entity.IsActive = true;
             await _dbContext.SaveChangesAsync();
             return entity;
-
         }
 
         public async Task<bool> IsUsedAsync(Expression<Func<T, bool>> predicate)
@@ -81,6 +101,5 @@ namespace PolyBalance.Repository
             var entity = await _dbContext.Set<Type>().FindAsync(id);
             return entity == null ? throw new InvalidOperationException($"This {typeof(Type).Name} is not existed") : true;
         }
-
     }
 }

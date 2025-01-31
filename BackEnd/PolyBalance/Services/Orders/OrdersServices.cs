@@ -28,14 +28,14 @@ namespace PolyBalance.Services.Orders
 
         public async Task<OrderDTO> GetOrderByIdAsync(int id)
         {
-            var order = await _orderRepository.GetByIdAsync(id);
+            var order = await _orderRepository.GetByIdAsync(id, o => o.OrderDetails);
 
             return ToDTO(order);
         }
 
         public async Task<ICollection<OrderDTO>> GetAllOrdersAsync()
         {
-            var orders = await _orderRepository.GetAllAsync();
+            var orders = await _orderRepository.GetAllAsync(o => o.OrderDetails);
             return orders.Select(ToDTO).ToList();
         }
 

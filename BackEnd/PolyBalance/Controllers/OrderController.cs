@@ -4,6 +4,7 @@ using PolyBalance.DTO;
 using System.Data.SqlTypes;
 using System.Data;
 using PolyBalance.Services.Orders;
+using PolyBalance.Models;
 
 namespace PolyBalance.Controllers
 {
@@ -24,8 +25,8 @@ namespace PolyBalance.Controllers
 
             try
             {
-                var party = await _OrdersServices.GetOrderByIdAsync(Id);
-                return Ok(party);
+                var order = await _OrdersServices.GetOrderByIdAsync(Id);
+                return Ok(order);
             }
             catch (SqlNullValueException ex)
             {
