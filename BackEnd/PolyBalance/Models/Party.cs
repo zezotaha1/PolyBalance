@@ -27,7 +27,7 @@ public partial class Party : IActivatable
 
     public DateTime PartyCreatedAt { get; set; }= new DateTime();
 
-    public  PartyType PartyType { get; set; }
+    public virtual PartyType PartyType { get; set; }
     public virtual ICollection<AccountDetail> AccountDetails { get; set; } = new List<AccountDetail>();
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();

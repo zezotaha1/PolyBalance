@@ -17,21 +17,10 @@ namespace PolyBalance.Repository
             _dbSet = _dbContext.Set<T>();
         }
 
-        private IQueryable<T> IncludeRelations(params Expression<Func<T, object>>[] includes)
+        public async Task<T> GetByIdAsync(int id)
         {
-            IQueryable<T> query = _dbSet;
-            foreach (var include in includes)
-            {
-                query = query.Include(include);
-            }
-            return query;
-        }
+            var entity = await _dbSet.FindAsync(id) ?? throw new SqlNullValueException("This Id Not Found");
 
-        public async Task<T> GetByIdAsync(int id, params Expression<Func<T, object>>[] includes)
-        {
-            var query = IncludeRelations(includes);
-            var entity = await query.FirstOrDefaultAsync(e => EF.Property<int>(e, $"{typeof(T).Name}Id") == id)
-                         ?? throw new SqlNullValueException("This Id Not Found");
 
             if (!entity.IsActive)
             {
@@ -41,20 +30,15 @@ namespace PolyBalance.Repository
             return entity;
         }
 
-        public async Task<ICollection<T>> GetAllAsync(params Expression<Func<T, object>>[] includes)
+        public async Task<ICollection<T>> GetAllAsync()
         {
-            return await IncludeRelations(includes)
-                .Where(e => e.IsActive)
-                .AsNoTracking()
-                .ToListAsync();
+            return await _dbSet.Where(e => e.IsActive).AsNoTracking().ToListAsync();
         }
 
-        public async Task<ICollection<T>> FindAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
+        public async Task<ICollection<T>> FindAsync(Expression<Func<T, bool>> predicate)
         {
-            return await IncludeRelations(includes)
-                .Where(e => e.IsActive)
-                .Where(predicate)
-                .ToListAsync();
+            return await _dbSet.Where(e => e.IsActive).Where(predicate).ToListAsync();
+
         }
 
         public async Task<T> AddAsync(T entity)

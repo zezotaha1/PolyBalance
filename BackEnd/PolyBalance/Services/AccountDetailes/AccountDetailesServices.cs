@@ -82,6 +82,11 @@ namespace PolyBalance.Services.AccountDetailes
 
         public async Task DeleteAccountDetailAsync(int id)
         {
+            var accountDetail = await GetAccountDetailByIdAsync(id);
+            if(accountDetail.OrderId!=null)
+            {
+                throw new Exception("You can not delete this Detail");
+            }
             await _AccountDetailRepository.DeleteByIdAsync(id);
         }
 

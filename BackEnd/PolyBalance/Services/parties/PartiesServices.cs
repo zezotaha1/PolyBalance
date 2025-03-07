@@ -85,6 +85,11 @@ namespace PolyBalance.Services.parties
 
         public async Task DeletePartyAsync(int id)
         {
+            var amount = GetPartyByIdAsync(id).Result.Amount;
+            if(amount!=0)
+            {
+                throw new Exception("this party have amount you can not delete it");
+            }
             await _PartyRepository.DeleteByIdAsync(id);
         }
 

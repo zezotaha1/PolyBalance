@@ -76,6 +76,12 @@ namespace PolyBalance.Services.Items
 
         public async Task DeleteItemAsync(int id)
         {
+            var item = await GetItemByIdAsync(id);
+            if(item.CurrentStock>0)
+            {
+                throw new Exception("Thir are Stock For this Item ");
+            }
+
             await _ItemRepository.DeleteByIdAsync(id);
         }
 

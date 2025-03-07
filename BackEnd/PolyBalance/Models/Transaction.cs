@@ -10,9 +10,6 @@ public partial class Transaction : IActivatable
     public int TransactionId { get; set; }
 
     public bool TransactionType { get; set; } //0 means income, 1 means expense
-    public int? OprationId { get; set; }
-    [MaxLength(50)]
-    public string? OprationType { get; set; }
 
     public DateTime TransactionDate { get; set; }
 

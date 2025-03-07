@@ -21,7 +21,7 @@ internal class Program
 
         // Configure DbContext
         builder.Services.AddDbContext<PolyBalanceDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection")));
+            options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection")).UseLazyLoadingProxies());
 
         builder.Services.AddControllers();
 

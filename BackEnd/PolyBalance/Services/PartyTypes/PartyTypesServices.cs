@@ -67,6 +67,13 @@ namespace PolyBalance.Services.PartyTypes
         // Delete PartyType (Soft Delete)
         public async Task DeletePartyTypeAsync(int id)
         {
+            var count = _PartyTypeRepository.GetByIdAsync(id).Result.Parties.Count();
+
+            if(count>0)
+            {
+                throw new Exception("You can not delete this Type ,Becouse thir are party included");
+            }
+
             await _PartyTypeRepository.DeleteByIdAsync(id);
         }
 

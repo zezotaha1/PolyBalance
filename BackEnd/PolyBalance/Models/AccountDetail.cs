@@ -21,5 +21,5 @@ public partial class AccountDetail : IActivatable
     public DateTime AccountDetailCreatedAt { get; set; }
     public bool IsActive { get; set; }
 
-    public virtual Party? Party { get; set; }
+    public virtual Party Party { get; set; }
 }
